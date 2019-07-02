@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t elcinico/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run  -e CI=true elcinico/dreact-test npm test -- --coverage
+
+after_success:
+  - docker build -t elcinico/multi-client ./client
+  - docker build -t elcinico/multi-nginx ./nginx
+  - docker build -t elcinico/multi-server ./server
+  - docker build -t elcinico/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push elcinico/multi-client
+  - docker push elcinico/multi-nginx
+  - docker push elcinico/multi-server
+  - docker push elcinico/multi-worker
